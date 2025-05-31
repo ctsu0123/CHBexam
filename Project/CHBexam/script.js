@@ -1,16 +1,22 @@
-// 下載範例檔案功能
-const downloadLink = document.getElementById('download-link');
-if (downloadLink) {
-    downloadLink.onclick = function(e) {
-        e.preventDefault();
-        
-        // 創建隱藏的iframe來觸發下載
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = 'example/範例.xlsx';
-        document.body.appendChild(iframe);
-        setTimeout(() => document.body.removeChild(iframe), 1000);
-    };
+// 下載功能
+function downloadFile(e) {
+    if (e) {
+        e.preventDefault(); // 阻止預設行為
+        e.stopPropagation(); // 阻止事件冒泡
+    }
+    
+    // 創建隱藏的iframe來觸發下載
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = 'example/範例.xlsx';
+    document.body.appendChild(iframe);
+    
+    // 設置延遲移除iframe，確保下載有足夠時間觸發
+    setTimeout(() => {
+        document.body.removeChild(iframe);
+    }, 1000);
+    
+    return false;
 }
 
 // 題庫資料暫存於此
