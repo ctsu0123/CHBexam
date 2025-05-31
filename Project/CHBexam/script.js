@@ -1,3 +1,18 @@
+// 下載範例檔案功能
+const downloadLink = document.getElementById('download-link');
+if (downloadLink) {
+    downloadLink.onclick = function(e) {
+        e.preventDefault();
+        
+        // 創建隱藏的iframe來觸發下載
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = 'example/範例.xlsx';
+        document.body.appendChild(iframe);
+        setTimeout(() => document.body.removeChild(iframe), 1000);
+    };
+}
+
 // 題庫資料暫存於此
 let questions = [];
 let mode = '';
