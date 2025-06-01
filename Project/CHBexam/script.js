@@ -1,3 +1,128 @@
+// 觸控手勢支援
+let touchStartX = 0;
+let touchEndX = 0;
+
+function handleTouchStart(event) {
+    touchStartX = event.changedTouches[0].screenX;
+}
+
+function handleTouchEnd(event) {
+    if (!touchStartX) return;
+    
+    touchEndX = event.changedTouches[0].screenX;
+    handleSwipe();
+    touchStartX = 0; // 重置觸控起始位置
+}
+
+function handleSwipe() {
+    const swipeThreshold = 50; // 最小滑動距離
+    
+    if (touchEndX < touchStartX - swipeThreshold) {
+        // 向左滑動，下一題
+        if (nextBtn && !nextBtn.disabled) nextBtn.click();
+    }
+    
+    if (touchEndX > touchStartX + swipeThreshold) {
+        // 向右滑動，上一題
+        if (prevBtn && !prevBtn.disabled) prevBtn.click();
+    }
+}
+
+// 初始化觸控事件
+function initTouchEvents() {
+    if ('ontouchstart' in window) {
+        document.addEventListener('touchstart', handleTouchStart, { passive: true });
+        document.addEventListener('touchend', handleTouchEnd, { passive: true });
+    }
+}
+
+// 初始化行動選單
+function initMobileMenu() {
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const leftPanel = document.getElementById('left-panel');
+    
+    if (mobileMenuBtn && leftPanel) {
+        mobileMenuBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            leftPanel.classList.toggle('visible');
+        });
+        
+        // 點擊外部關閉選單
+        document.addEventListener('click', function(event) {
+            if (leftPanel.classList.contains('visible') && 
+                !leftPanel.contains(event.target) && 
+                event.target !== mobileMenuBtn) {
+                leftPanel.classList.remove('visible');
+            }
+        });
+        
+        // 防止點擊選單內部時觸發外部點擊事件
+        leftPanel.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    }
+}
+
+// 檢測 iOS 裝置
+function isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+// 優化 iOS 輸入體驗
+function optimizeForIOS() {
+    if (!isIOS()) return;
+    
+    // 為輸入框添加額外的 padding 以防止縮放
+    const inputs = document.querySelectorAll('input[type="text"], input[type="number"]');
+    inputs.forEach(input => {
+        input.style.fontSize = '16px'; // 防止 iOS 自動放大
+    });
+    
+    // 防止點擊輸入框時頁面縮放
+    document.documentElement.style.touchAction = 'manipulation';
+    document.documentElement.style.webkitTextSizeAdjust = '100%';
+}
+
+// 處理視窗大小變更
+function handleResize() {
+    const leftPanel = document.getElementById('left-panel');
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    
+    if (window.innerWidth > 768) {
+        // 桌面版：顯示左側面板，隱藏行動選單按鈕
+        if (leftPanel) leftPanel.style.transform = 'none';
+        if (mobileMenuBtn) mobileMenuBtn.style.display = 'none';
+    } else {
+        // 行動版：隱藏左側面板，顯示行動選單按鈕
+        if (leftPanel) leftPanel.style.transform = 'translateX(-100%)';
+        if (mobileMenuBtn) mobileMenuBtn.style.display = 'block';
+    }
+}
+
+// 頁面載入完成後初始化
+document.addEventListener('DOMContentLoaded', function() {
+    initTouchEvents();
+    initMobileMenu();
+    optimizeForIOS(); // 優化 iOS 裝置體驗
+    handleResize();
+    
+    // 監聽視窗大小變化
+    window.addEventListener('resize', handleResize);
+    
+    // 在 iOS 上禁用雙擊縮放
+    if (isIOS()) {
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+    }
+});
+
 // 下載功能
 function downloadFile(e) {
     if (e) {
