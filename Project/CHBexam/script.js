@@ -82,6 +82,19 @@ function optimizeForIOS() {
     // 防止點擊輸入框時頁面縮放
     document.documentElement.style.touchAction = 'manipulation';
     document.documentElement.style.webkitTextSizeAdjust = '100%';
+    
+    // 添加 iOS 下載提示
+    const downloadLink = document.getElementById('download-link');
+    if (downloadLink) {
+        downloadLink.addEventListener('click', function(e) {
+            // 短暫延遲後顯示提示，避免被瀏覽器阻擋
+            setTimeout(() => {
+                if (!window.confirm('在 iOS 上，請點擊「下載」按鈕後，選擇「在『檔案』中下載」或「下載連結檔案」以儲存範例檔案。')) {
+                    // 使用者點擊取消，不做任何操作
+                }
+            }, 100);
+        });
+    }
 }
 
 // 處理視窗大小變更
@@ -130,16 +143,30 @@ function downloadFile(e) {
         e.stopPropagation(); // 阻止事件冒泡
     }
     
-    // 創建隱藏的iframe來觸發下載
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    iframe.src = 'example/範例.xlsx';
-    document.body.appendChild(iframe);
+    const fileUrl = 'example/範例.xlsx';
     
-    // 設置延遲移除iframe，確保下載有足夠時間觸發
-    setTimeout(() => {
-        document.body.removeChild(iframe);
-    }, 1000);
+    // 檢查是否為 iOS 裝置
+    if (isIOS()) {
+        // 在 iOS 上使用 window.open 方法
+        const newWindow = window.open(fileUrl, '_blank');
+        if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+            // 如果彈出視窗被阻擋，顯示提示訊息
+            alert('請允許彈出視窗以下載檔案。如果沒有自動下載，請長按連結並選擇「下載連結檔案」。');
+        }
+    } else {
+        // 在桌面上使用傳統的 iframe 方法
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = fileUrl;
+        document.body.appendChild(iframe);
+        
+        // 設置延遲移除 iframe
+        setTimeout(() => {
+            if (iframe.parentNode) {
+                document.body.removeChild(iframe);
+            }
+        }, 1000);
+    }
     
     return false;
 }
